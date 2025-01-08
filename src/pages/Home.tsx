@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { getPosts } from '../services/api/postsApi';
-import Timeline from '../components/Timeline';
+import Posts from '../components/Posts';
 
 interface DataItem {
 	id: string;
@@ -73,12 +73,18 @@ export default function Home() {
 
 	return (
 		<>
+			<header className='mb-40'>
+				<div className='relative mb-6 w-full md:w-4/5 mx-auto'>
+					<input id='steps-range' type='range' min={0} max={3} defaultValue='4' step='1' className='w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700' />
+					<span className='text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6'>1 month ago</span>
+					<span className='text-sm text-gray-500 dark:text-gray-400 absolute start-1/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6'>1 week ago</span>
+					<span className='text-sm text-gray-500 dark:text-gray-400 absolute start-2/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6'>Yesterday</span>
+					<span className='text-sm text-gray-500 dark:text-gray-400 absolute end-0 -bottom-6'>Today</span>
+				</div>
+			</header>
 			<div className='max-w-2xl mx-auto mt-8'>
-				{data.map((item) => (
-					<Post key={item.id} title={item.title} content={item.content} author={item.author} createdAt={item.createdAt.toDate()} />
-				))}
+				<Posts posts={data} />
 			</div>
-			<Timeline />
 		</>
 	);
 }
