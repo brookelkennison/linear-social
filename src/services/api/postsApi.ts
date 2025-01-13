@@ -1,28 +1,34 @@
-import { db } from '../firebase';
-import { collection, query, orderBy, getDocs, addDoc } from 'firebase/firestore';
+import { getDocs, collection, query, orderBy } from 'firebase/firestore';
+import { db } from '../firebase'; // Ensure your Firebase config is imported correctly
 import { getReference } from '../../utils/helper';
 
-// Fetch all posts in reverse chronological order
 export const getPosts = async () => {
-	try {
-		const querySnapshot = await getDocs(collection(db, 'posts'));
-		const fetchedData = querySnapshot.docs.map((doc) => ({
-			id: doc.id,
-			...doc.data(),
-		}));
-		const postsWithAuthor = await Promise.all(
-			fetchedData.map(async (post) => {
-				const authorObject = await getReference(post.author);
-				console.log('authorObject', authorObject);
-				return { ...post, author: authorObject };
-			})
-		);
-		console.log('postsWithAuthor', postsWithAuthor);
-		return postsWithAuthor;
-	} catch (error) {
-		console.error('Error fetching posts:', error);
-		throw error;
-	}
+  try {
+    // Create a query to sort posts by a timestamp field (e.g., 'createdAt') in descending order
+    const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(postsQuery);
+
+    // Map over the query results to get post data and IDs
+    const fetchedData = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    console.log('fetchedData', fetchedData);
+
+    // Fetch author data for each post and return the combined result
+    const postsWithAuthor = await Promise.all(
+      fetchedData.map(async (post) => {
+        const authorObject = await getReference(post.author);
+        return { ...post, author: authorObject };
+      })
+    );
+
+    return postsWithAuthor;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
 };
 
 // Create a new post
