@@ -14,8 +14,6 @@ export const getPosts = async () => {
       ...doc.data(),
     }));
 
-    console.log('fetchedData', fetchedData);
-
     // Fetch author data for each post and return the combined result
     const postsWithAuthor = await Promise.all(
       fetchedData.map(async (post) => {
