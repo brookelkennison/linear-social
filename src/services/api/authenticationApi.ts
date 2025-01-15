@@ -1,5 +1,5 @@
 // Import Firebase modules
-import { onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../firebase';
 
@@ -38,6 +38,21 @@ export const login = async (email: string, password: string) => {
     };
   }
 };
+
+export const logout = async () => {
+    try {
+      await signOut(auth);
+      return {
+        success: true,
+        message: "User logged out successfully"
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message
+      };
+    }
+  };
 
 const setAuthStateListener = async () => {
 onAuthStateChanged(auth, (user) => {

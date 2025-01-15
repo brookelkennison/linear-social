@@ -1,4 +1,4 @@
-import { getDocs, collection, query, orderBy } from 'firebase/firestore';
+import { getDocs, collection, query, orderBy, addDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure your Firebase config is imported correctly
 import { getReference } from '../../utils/helper';
 
@@ -30,17 +30,26 @@ export const getPosts = async () => {
 };
 
 // Create a new post
-export const createPost = async (content, userId) => {
-	try {
-		const postsRef = collection(db, 'posts');
-		const newPost = await addDoc(postsRef, {
-			content,
-			author: userId,
-			timestamp: new Date().toISOString(),
-		});
-		return newPost.id;
-	} catch (error) {
-		console.error('Error creating post:', error);
-		throw error;
-	}
+export const createPost = async (title: string, content: string, userId: string) => {
+  try {
+    // Create a reference to the user document
+    const userRef = doc(db, 'users', userId);
+
+    // Prepare the post object
+    const post = {
+      title,
+      content,
+      author: userRef, // Reference to the author document
+      createdAt: Timestamp.now(), // Firestore-compatible timestamp
+    };
+
+    // Add the post to the 'posts' collection
+    const postsRef = collection(db, 'posts');
+    const newPost = await addDoc(postsRef, post);
+    console.log('New post created with ID:', newPost.id);
+    return newPost.id;
+  } catch (error) {
+    console.error('Error creating post:', error);
+    throw error;
+  }
 };

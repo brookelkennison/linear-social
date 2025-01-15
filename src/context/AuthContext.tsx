@@ -1,10 +1,21 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirestore, doc, getDoc, query, collection, orderBy, where } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { getUserByUid } from '../services/api/userApi';
 
 // Define the shape of the context
+interface UserData {
+	uid: string;
+	email: string;
+	displayName: string;
+	[otherFields: string]: any; // Add other fields as needed
+}
+
 interface AuthContextType {
 	user: User | null;
+	userData: UserData | null;
 	loading: boolean;
 }
 
@@ -19,19 +30,39 @@ interface AuthProviderProps {
 // AuthProvider Component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 	const [user, setUser] = useState<User | null>(null);
+	const [userData, setUserData] = useState<UserData | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		const auth = getAuth();
-		const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+		const firestore = getFirestore();
+
+		const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 			setUser(currentUser);
+
+			if (currentUser) {
+				const userData = await getUserByUid(currentUser.uid);
+				setUserData(userData);
+				console.log('userData: ', userData);
+
+				// console.log('userDoc', userDoc);
+				// if (userDoc.exists()) {
+				// 	setUserData(userDoc.data() as UserData);
+				// } else {
+				// 	console.warn('No user document found for UID:', currentUser.uid);
+				// 	setUserData(null);
+				// }
+			} else {
+				setUserData(null);
+			}
+
 			setLoading(false);
 		});
 
 		return () => unsubscribe(); // Cleanup on unmount
 	}, []);
 
-	return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
+	return <AuthContext.Provider value={{ user, userData, loading }}>{children}</AuthContext.Provider>;
 };
 
 // Custom hook for consuming AuthContext

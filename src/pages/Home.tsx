@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Timestamp } from 'firebase/firestore';
-import { getPosts } from '../services/api/postsApi';
+import { createPost, getPosts } from '../services/api/postsApi';
 import Posts from '../components/Posts';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -109,7 +109,12 @@ export default function Home() {
 
 	const handleFormSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+		if (!user) {
+			navigate('/login');
+			return;
+		}
 		// Handle form submission (e.g., save to Firebase)
+		createPost(newPost.content, user?.uid);
 		setNewPost({ title: '', content: '' });
 		setIsModalOpen(false);
 	};
@@ -127,7 +132,6 @@ export default function Home() {
 	return (
 		<div className='container mx-auto'>
 			{/* on click of login button  */}
-			<div>{user ? <p>Welcome, {user.email}</p> : <button onClick={handleLoginClick}>Log in</button>}</div>
 			<div className='mb-4'>
 				{/* Create Post Button */}
 				<button onClick={handleModalToggle} className='justify-self-end bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow flex items-center gap-2'>
@@ -175,7 +179,7 @@ export default function Home() {
 								</button>
 							</div>
 							{/* Modal body */}
-							<form className='p-4 md:p-5'>
+							<form className='p-4 md:p-5' onSubmit={handleFormSubmit}>
 								<div className='grid gap-4 mb-4 grid-cols-2 text-left'>
 									<div className='col-span-2'>
 										<label htmlFor='name' className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
