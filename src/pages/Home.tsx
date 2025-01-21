@@ -18,7 +18,7 @@ interface Author {
 }
 
 export default function Home() {
-	const { user, loading } = useAuth();
+	const { user, loading, userData, userEntryId, userRef } = useAuth();
 	const navigate = useNavigate();
 	const [data, setData] = useState<DataItem[]>([]);
 	const [filteredData, setFilteredData] = useState<DataItem[]>([]);
@@ -96,10 +96,9 @@ export default function Home() {
 	};
 
 	useEffect(() => {
-		console.log('user', user);
 		// Redirect to login if no user and not loading
 		if (!loading && !user) {
-			// navigate('/login');
+			navigate('/login');
 		}
 	}, [user, loading, navigate]);
 
@@ -107,14 +106,17 @@ export default function Home() {
 		navigate('/login');
 	};
 
-	const handleFormSubmit = (e: React.FormEvent) => {
+	const handleFormSubmit = (e: React.FormEvent, post: Post) => {
 		e.preventDefault();
 		if (!user) {
 			navigate('/login');
 			return;
 		}
-		// Handle form submission (e.g., save to Firebase)
-		createPost(newPost.content, user?.uid);
+		if (!userRef || newPost.title === '' || newPost.content === '') {
+			alert('Please fill in all fields');
+			return;
+		}
+		createPost(newPost.title, newPost.content, userRef);
 		setNewPost({ title: '', content: '' });
 		setIsModalOpen(false);
 	};
@@ -179,19 +181,19 @@ export default function Home() {
 								</button>
 							</div>
 							{/* Modal body */}
-							<form className='p-4 md:p-5' onSubmit={handleFormSubmit}>
+							<form className='p-4 md:p-5' onSubmit={(e) => handleFormSubmit(e, newPost)}>
 								<div className='grid gap-4 mb-4 grid-cols-2 text-left'>
 									<div className='col-span-2'>
 										<label htmlFor='name' className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
 											Title
 										</label>
-										<input type='text' name='name' id='name' className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500' placeholder='Type product name' required='' />
+										<input type='text' name='name' id='name' onChange={(e) => setNewPost({ ...newPost, title: e.target.value })} className='bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500' placeholder='Type product name' required='' />
 									</div>
 									<div className='col-span-2'>
 										<label htmlFor='description' className='block mb-2 text-sm font-medium text-gray-900 dark:text-white'>
 											Post Content
 										</label>
-										<textarea id='description' rows={4} className='block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500' placeholder='Write post content here' defaultValue={''} />
+										<textarea id='description' onChange={(e) => setNewPost({ ...newPost, content: e.target.value })} rows={4} className='block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500' placeholder='Write post content here' defaultValue={''} />
 									</div>
 								</div>
 								<button type='submit' className='text-white inline-flex bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800'>

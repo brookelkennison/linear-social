@@ -1,6 +1,22 @@
-import { getDocs, collection, query, orderBy, addDoc, doc, Timestamp } from 'firebase/firestore';
+import { getDocs, collection, query, orderBy, addDoc, doc, Timestamp, setDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure your Firebase config is imported correctly
 import { getReference } from '../../utils/helper';
+import { DocumentReference } from 'firebase/firestore';
+import { getUserReference } from './userApi';
+
+interface Post {
+    title: string;
+    content: string;
+    author: DocumentReference;
+    createdAt?: Timestamp;
+}
+
+interface UserData {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: Timestamp;
+}
 
 export const getPosts = async () => {
   try {
@@ -29,27 +45,24 @@ export const getPosts = async () => {
   }
 };
 
-// Create a new post
-export const createPost = async (title: string, content: string, userId: string) => {
-  try {
-    // Create a reference to the user document
-    const userRef = doc(db, 'users', userId);
 
-    // Prepare the post object
-    const post = {
-      title,
-      content,
-      author: userRef, // Reference to the author document
-      createdAt: Timestamp.now(), // Firestore-compatible timestamp
-    };
-
-    // Add the post to the 'posts' collection
-    const postsRef = collection(db, 'posts');
-    const newPost = await addDoc(postsRef, post);
-    console.log('New post created with ID:', newPost.id);
-    return newPost.id;
-  } catch (error) {
-    console.error('Error creating post:', error);
-    throw error;
+export async function createPost(title: string, content: string, userRef: DocumentReference) {
+    // need to get the user id from the userData
+    try {
+      // Reference to the users collection)
+      // Add a new document with a generated id
+    const newPostRef = doc(collection(db, "posts"));
+    const newPost = {
+        title: title,
+        content: content,
+        author: userRef,
+        createdAt: Timestamp.now() // Automatically generated timestamp
+    }
+    await setDoc(newPostRef, newPost);
+  
+      console.log("Post created with ID: ", newPostRef.id);
+    } catch (error) {
+      console.error("Error creating post: ", error);
+    }
   }
-};
+

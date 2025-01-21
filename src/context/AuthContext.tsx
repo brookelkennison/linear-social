@@ -1,9 +1,9 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, query, collection, orderBy, where } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, query, collection, orderBy, where, DocumentReference } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import { getUserByUid } from '../services/api/userApi';
+import { getUserByUid, getUserEntryIdByUid, getUserReference } from '../services/api/userApi';
 
 // Define the shape of the context
 interface UserData {
@@ -17,6 +17,8 @@ interface AuthContextType {
 	user: User | null;
 	userData: UserData | null;
 	loading: boolean;
+	userEntryId: string | null;
+	userRef: DocumentReference | null;
 }
 
 // Create a default value for the context
@@ -32,26 +34,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 	const [user, setUser] = useState<User | null>(null);
 	const [userData, setUserData] = useState<UserData | null>(null);
 	const [loading, setLoading] = useState(true);
-
+	const [userEntryId, setUserEntryId] = useState<string | null>(null);
+	const [userRef, setUserRef] = useState<DocumentReference | null>(null);
 	useEffect(() => {
 		const auth = getAuth();
 		const firestore = getFirestore();
 
 		const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 			setUser(currentUser);
-
 			if (currentUser) {
 				const userData = await getUserByUid(currentUser.uid);
-				setUserData(userData);
-				console.log('userData: ', userData);
-
-				// console.log('userDoc', userDoc);
-				// if (userDoc.exists()) {
-				// 	setUserData(userDoc.data() as UserData);
-				// } else {
-				// 	console.warn('No user document found for UID:', currentUser.uid);
-				// 	setUserData(null);
-				// }
+				setUserData(userData as UserData);
+				const userEntryId = await getUserEntryIdByUid(currentUser.uid);
+				setUserEntryId(userEntryId);
+				const userRef = await getUserReference(userEntryId);
+				setUserRef(userRef as DocumentReference);
 			} else {
 				setUserData(null);
 			}
@@ -62,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 		return () => unsubscribe(); // Cleanup on unmount
 	}, []);
 
-	return <AuthContext.Provider value={{ user, userData, loading }}>{children}</AuthContext.Provider>;
+	return <AuthContext.Provider value={{ user, userData, loading, userEntryId, userRef }}>{children}</AuthContext.Provider>;
 };
 
 // Custom hook for consuming AuthContext

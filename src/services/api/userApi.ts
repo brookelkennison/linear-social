@@ -12,10 +12,9 @@ export async function getUserByUid(uid: string) {
         const q = query(collection(db, "users"), where("uid", "==", uid), limit(1));
         const querySnapshot = await getDocs(q);
         const userDoc = querySnapshot.docs[0];
-        if (userDoc.exists()) {
+        if (userDoc) {
             return userDoc.data();
         } else {
-            console.log('No user found with the specified UID.');
             return null;
         }
     } catch (error) {
@@ -24,12 +23,22 @@ export async function getUserByUid(uid: string) {
     }
 }
 
+export async function getUserEntryIdByUid(uid: string) {
+    const q = query(collection(db, "users"), where("uid", "==", uid), limit(1));
+    const querySnapshot = await getDocs(q);
+    const id = querySnapshot.docs[0].id;
+    return id;
+}
 
-// Example usage
-getUserByUid('your-uid-here').then((userData) => {
-    if (userData) {
-        console.log('Retrieved user data:', userData);
-    } else {
-        console.log('User not found.');
+export async function getUserReference(uid: string) {
+    const userRef = doc(db, "users", uid);
+    return userRef;
+}
+
+export async function createUserEntry(user: UserData) {
+    try {
+        const docRef = await addDoc(collection(db, "users"), user);
+    } catch (error) {
+        console.error("Error adding document: ", error);
     }
-});
+}

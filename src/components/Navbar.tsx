@@ -7,8 +7,13 @@ const NavBar: React.FC = () => {
 	const { user, loading, userData } = useAuth();
 
 	const navigate = useNavigate();
+
 	const handleLoginClick = () => {
 		navigate('/login');
+	};
+
+	const handleSignUpClick = () => {
+		navigate('/signup');
 	};
 
 	const handleLogout = async () => {
@@ -36,7 +41,9 @@ const NavBar: React.FC = () => {
 						</>
 					) : (
 						<>
-							<p>Sign up</p>
+							<button className='bg-white text-blue-600 px-4 py-2 rounded-md shadow-md hover:bg-gray-100' onClick={handleSignUpClick}>
+								Sign Up
+							</button>
 							<button className='bg-white text-blue-600 px-4 py-2 rounded-md shadow-md hover:bg-gray-100' onClick={handleLoginClick}>
 								Log In
 							</button>
