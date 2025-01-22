@@ -47,8 +47,9 @@ export async function createPost(title: string, content: string, userRef: Docume
         createdAt: Timestamp.now() // Automatically generated timestamp
     }
     await setDoc(newPostRef, newPost);
-  
+    
       console.log("Post created with ID: ", newPostRef.id);
+
     } catch (error) {
       console.error("Error creating post: ", error);
     }
