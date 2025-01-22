@@ -6,7 +6,8 @@ import { auth, db } from '../firebase';
 
 export const signup = async (email: string, password: string) => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // need to add createdAt to user
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password,);
     const user = userCredential.user;
     return {
       success: true,

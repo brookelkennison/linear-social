@@ -14,14 +14,9 @@ const Home: React.FC = () => {
 	};
 
 	const navigate = useNavigate();
-	// need to trigger an update of filteredPosts when a post is added
 	const { filteredPosts, isLoading, error, selectedFilter, setFilter, addPost } = usePosts();
 	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 	const [newPost, setNewPost] = useState<{ title: string; content: string }>({ title: '', content: '' });
-
-	useEffect(() => {
-		console.log('filteredPosts', filteredPosts);
-	}, [filteredPosts]);
 
 	useEffect(() => {
 		if (!loading && !user) {
@@ -63,7 +58,7 @@ const Home: React.FC = () => {
 			</div>
 			<header className='relative mb-20'>
 				<div className='relative mb-6 w-full mx-auto'>
-					<input id='steps-range' type='range' min={0} max={3} defaultValue='4' step='1' className='w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700' value={selectedFilter} onChange={(e) => setFilter(e.target.value)} />
+					<input id='steps-range' type='range' min={0} max={3} step='1' className='w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700' value={selectedFilter} onChange={(e) => setFilter(e.target.value)} />
 					<span className='text-sm text-gray-500 dark:text-gray-400 absolute start-0 -bottom-6'>30 days and older</span>
 					<span className='text-sm text-gray-500 dark:text-gray-400 absolute start-1/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6'>7 days and older</span>
 					<span className='text-sm text-gray-500 dark:text-gray-400 absolute start-2/3 -translate-x-1/2 rtl:translate-x-1/2 -bottom-6'>Yesterday</span>
@@ -71,8 +66,6 @@ const Home: React.FC = () => {
 				</div>
 			</header>
 			<div className='max-w-2xl mx-auto'>
-				{/* need to trigger an update when a post is added */}
-
 				{filteredPosts.length > 0 ? (
 					<>
 						<p className='text-center text-gray-600 mb-7'>

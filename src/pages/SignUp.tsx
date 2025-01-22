@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signup } from '../services/api/authenticationApi';
 import { createUserEntry } from '../services/api/userApi';
+import { Timestamp } from 'firebase/firestore';
 
 // Add interface for the signup response
 interface SignupResponse {
@@ -43,6 +44,7 @@ const SignUp = () => {
 					email,
 					uid,
 					avatar: '',
+					createdAt: Timestamp.fromDate(new Date()),
 				});
 				navigate('/');
 			} else {
