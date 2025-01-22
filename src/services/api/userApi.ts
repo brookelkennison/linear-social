@@ -1,6 +1,7 @@
 import { getDocs, collection, query, orderBy, addDoc, doc, Timestamp, getDoc, where, limit } from 'firebase/firestore';
 import { db } from '../firebase'; // Ensure your Firebase config is imported correctly
 import { getReference } from '../../utils/helper';
+import { UserData } from '../../types';
 /**
  * Function to get user data by UID from the Firestore 'user' collection.
  * @param {string} uid - The user ID to look up.

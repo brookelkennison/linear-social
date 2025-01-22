@@ -3,20 +3,7 @@ import { db } from '../firebase'; // Ensure your Firebase config is imported cor
 import { getReference } from '../../utils/helper';
 import { DocumentReference } from 'firebase/firestore';
 import { getUserReference } from './userApi';
-
-interface Post {
-    title: string;
-    content: string;
-    author: DocumentReference;
-    createdAt?: Timestamp;
-}
-
-interface UserData {
-    id: string;
-    name: string;
-    email: string;
-    createdAt: Timestamp;
-}
+import { Post, Author, PostWithAuthor } from '../../types';
 
 export const getPosts = async () => {
   try {
@@ -32,8 +19,9 @@ export const getPosts = async () => {
 
     // Fetch author data for each post and return the combined result
     const postsWithAuthor = await Promise.all(
+        // console.log('fetchedData: ', fetchedData);
       fetchedData.map(async (post) => {
-        const authorObject = await getReference(post.author);
+        const authorObject = await getReference(post.author as DocumentReference);
         return { ...post, author: authorObject };
       })
     );

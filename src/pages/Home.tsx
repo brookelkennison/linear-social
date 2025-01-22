@@ -1,39 +1,38 @@
 import { useState, useEffect } from 'react';
-import { Timestamp } from 'firebase/firestore';
-import { createPost, getPosts } from '../services/api/postsApi';
-import Posts from '../components/Posts';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { createPost, getPosts } from '../services/api/postsApi';
+import Posts from '../components/Posts';
+import { Post, PostWithAuthor } from '../types';
 
-interface DataItem {
-	id: string;
-	title: string;
-	content: string;
-	author: Author;
-	createdAt: Timestamp;
-}
-interface Author {
-	name: string;
-	email: string;
-}
+const Home: React.FC = () => {
+	// Destructure `useAuth` with proper typing
+	const { user, loading, userData, userEntryId, userRef } = useAuth() as {
+		user: string | null;
+		loading: boolean;
+		userData: { id: string; name: string; email: string } | null;
+		userEntryId: string | null;
+		userRef: any; // Replace with the specific Firestore reference type if available
+	};
 
-export default function Home() {
-	const { user, loading, userData, userEntryId, userRef } = useAuth();
 	const navigate = useNavigate();
-	const [data, setData] = useState<DataItem[]>([]);
-	const [filteredData, setFilteredData] = useState<DataItem[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
-	const [selectedFilter, setSelectedFilter] = useState<string>('3'); // To track the selected filter
-	const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
-	const [newPost, setNewPost] = useState({ title: '', content: '' }); // New post state
 
+	// State definitions with types
+	const [data, setData] = useState<PostWithAuthor[]>([]);
+	const [filteredData, setFilteredData] = useState<PostWithAuthor[]>([]);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [error, setError] = useState<string | null>(null);
+	const [selectedFilter, setSelectedFilter] = useState<string>('3');
+	const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+	const [newPost, setNewPost] = useState<{ title: string; content: string }>({ title: '', content: '' });
+
+	// Fetch posts and handle filtering
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				const posts = await getPosts();
-				setData(posts as DataItem[]);
-				setFilteredData(posts as DataItem[]); // Default display all posts
+				setData(posts as PostWithAuthor[]);
+				filterPosts('3');
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'An error occurred');
 			} finally {
@@ -44,8 +43,9 @@ export default function Home() {
 		fetchData();
 	}, []);
 
+	// Filter posts based on selected filter
 	const filterPosts = (filter: string) => {
-		let filtered: DataItem[] = [];
+		let filtered: PostWithAuthor[] = [];
 		const now = new Date();
 		const todayStart = new Date(now);
 		todayStart.setHours(0, 0, 0, 0);
@@ -55,31 +55,31 @@ export default function Home() {
 		const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
 		switch (filter) {
-			case '0': // Past 30 days (excluding past 7 days)
+			case '0':
 				filtered = data.filter((post) => {
-					const postDate = post.createdAt.toDate();
-					return postDate >= thirtyDaysAgo && postDate < sevenDaysAgo;
+					const postDate = post.createdAt?.toDate();
+					return postDate && postDate >= thirtyDaysAgo && postDate < sevenDaysAgo;
 				});
 				break;
 
-			case '1': // Past 7 days (excluding yesterday and today)
+			case '1':
 				filtered = data.filter((post) => {
-					const postDate = post.createdAt.toDate();
-					return postDate >= sevenDaysAgo && postDate < yesterdayStart;
+					const postDate = post.createdAt?.toDate();
+					return postDate && postDate >= sevenDaysAgo && postDate < yesterdayStart;
 				});
 				break;
 
-			case '2': // Yesterday only
+			case '2':
 				filtered = data.filter((post) => {
-					const postDate = post.createdAt.toDate();
-					return postDate >= yesterdayStart && postDate < todayStart;
+					const postDate = post.createdAt?.toDate();
+					return postDate && postDate >= yesterdayStart && postDate < todayStart;
 				});
 				break;
 
-			case '3': // Today only
+			case '3':
 				filtered = data.filter((post) => {
-					const postDate = post.createdAt.toDate();
-					return postDate >= todayStart;
+					const postDate = post.createdAt?.toDate();
+					return postDate && postDate >= todayStart;
 				});
 				break;
 
@@ -87,32 +87,26 @@ export default function Home() {
 				filtered = data;
 		}
 
-		setSelectedFilter(filter); // Save the selected filter
-		setFilteredData(filtered); // Update the filtered data
+		setSelectedFilter(filter);
+		setFilteredData(filtered);
 	};
 
+	// Handle modal toggle
 	const handleModalToggle = () => {
 		setIsModalOpen(!isModalOpen);
 	};
 
+	// Redirect to login if user is not authenticated
 	useEffect(() => {
-		// Redirect to login if no user and not loading
 		if (!loading && !user) {
 			navigate('/login');
 		}
 	}, [user, loading, navigate]);
 
-	const handleLoginClick = () => {
-		navigate('/login');
-	};
-
-	const handleFormSubmit = (e: React.FormEvent, post: Post) => {
+	// Handle form submission
+	const handleFormSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!user) {
-			navigate('/login');
-			return;
-		}
-		if (!userRef || newPost.title === '' || newPost.content === '') {
+		if (!user || !userRef || newPost.title === '' || newPost.content === '') {
 			alert('Please fill in all fields');
 			return;
 		}
@@ -124,7 +118,7 @@ export default function Home() {
 	if (isLoading) return <p>Loading...</p>;
 	if (error) return <p>Error: {error}</p>;
 
-	const filterLabels: { [key: string]: string } = {
+	const filterLabels: Record<string, string> = {
 		'0': '30 days and older',
 		'1': '7 days and older',
 		'2': 'Yesterday',
@@ -133,9 +127,7 @@ export default function Home() {
 
 	return (
 		<div className='container mx-auto'>
-			{/* on click of login button  */}
 			<div className='mb-4'>
-				{/* Create Post Button */}
 				<button onClick={handleModalToggle} className='justify-self-end bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow flex items-center gap-2'>
 					<i className='fas fa-plus'></i> Create
 				</button>
@@ -209,4 +201,6 @@ export default function Home() {
 			)}
 		</div>
 	);
-}
+};
+
+export default Home;

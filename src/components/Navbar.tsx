@@ -2,9 +2,18 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/api/authenticationApi';
+import { UserData } from '../types'; // Importing UserData type
+
+// Ensure the context provides the appropriate types
+interface AuthContextType {
+	user: string | null; // Adjust based on what `user` represents (e.g., UID or null)
+	loading: boolean;
+	userData: UserData | null; // Ensure it matches the UserData type
+}
 
 const NavBar: React.FC = () => {
-	const { user, loading, userData } = useAuth();
+	// Destructure values from `useAuth` with proper typing
+	const { user, loading, userData } = useAuth() as AuthContextType;
 
 	const navigate = useNavigate();
 

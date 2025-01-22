@@ -1,25 +1,5 @@
 import React from 'react';
 
-interface DataItem {
-	id: string;
-	title: string;
-	content: string;
-	author: Author;
-	createdAt: Date;
-}
-
-interface PostProps {
-	title: string;
-	content: string;
-	author: Author;
-	createdAt: Date;
-}
-
-interface Author {
-	name: string;
-	email: string;
-}
-
 const formatDate = (timestamp: Date): string => {
 	const date = new Date(timestamp);
 	const options: Intl.DateTimeFormatOptions = {
@@ -33,7 +13,7 @@ const formatDate = (timestamp: Date): string => {
 	return date.toLocaleString('en-US', options);
 };
 
-const Posts = ({ posts }: { posts: DataItem[] }) => {
+const Posts = ({ posts }: { posts: PostWithAuthor[] }) => {
 	return (
 		<ol className='relative border-s border-gray-200 dark:border-gray-700'>
 			{posts.map((post) => (
