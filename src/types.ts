@@ -16,12 +16,23 @@ export interface Author {
     createdAt: Timestamp;
 }
 
+// What the database stores or what the app expects when everything is fully loaded
 export interface UserData {
-    id: string;
-    name: string;
-    email: string;
-    createdAt: Timestamp;
-    avatar?: string;
+	id: string;
+	name: string;
+	email: string;
+	createdAt: Timestamp;
+	uid: string;
+	avatar?: string;
+}
+
+// What you send when *creating* a user
+export interface NewUserData {
+	name: string;
+	email: string;
+	createdAt: Timestamp;
+	uid: string;
+	avatar?: string;
 }
 
 export interface PostWithAuthor {

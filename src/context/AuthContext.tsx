@@ -1,8 +1,7 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { getAuth, onAuthStateChanged, User } from 'firebase/auth';
-import { getFirestore, doc, getDoc, query, collection, orderBy, where, DocumentReference } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { DocumentReference } from 'firebase/firestore';
 import { getUserByUid, getUserEntryIdByUid, getUserReference } from '../services/api/userApi';
 
 // Define the shape of the context
@@ -38,7 +37,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 	const [userRef, setUserRef] = useState<DocumentReference | null>(null);
 	useEffect(() => {
 		const auth = getAuth();
-		const firestore = getFirestore();
 
 		const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
 			setUser(currentUser);

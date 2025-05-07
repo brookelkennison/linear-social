@@ -13,7 +13,7 @@ interface AuthContextType {
 
 const NavBar: React.FC = () => {
 	// Destructure values from `useAuth` with proper typing
-	const { user, loading, userData } = useAuth() as AuthContextType;
+	const { user, userData } = useAuth() as AuthContextType;
 
 	const navigate = useNavigate();
 

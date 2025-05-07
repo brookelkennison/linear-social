@@ -1,4 +1,4 @@
-declare module './Home' {
+declare module 'Home' {
     const Home: React.FC;
     export default Home;
 } 

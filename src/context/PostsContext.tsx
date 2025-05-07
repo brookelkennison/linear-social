@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { createPost, getPosts } from '../services/api/postsApi';
-import { PostWithAuthor } from '../types';
+import { PostWithAuthor, Author } from '../types';
+import { DocumentData } from 'firebase/firestore';
 
 interface PostsContextProps {
 	posts: PostWithAuthor[];
@@ -13,6 +14,17 @@ interface PostsContextProps {
 }
 
 const PostsContext = createContext<PostsContextProps | undefined>(undefined);
+
+const getDate = (value: any): Date | null => {
+	if (!value) return null;
+	if (value.toDate) return value.toDate(); // Firestore Timestamp
+	if (value instanceof Date) return value;
+	try {
+		return new Date(value); // ISO string or number
+	} catch {
+		return null;
+	}
+};
 
 export const usePosts = () => {
 	const context = useContext(PostsContext);
@@ -33,8 +45,17 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 		const fetchData = async () => {
 			try {
 				const fetchedPosts = await getPosts();
-				setPosts(fetchedPosts as PostWithAuthor[]);
-				filterPosts('3', fetchedPosts as PostWithAuthor[]);
+				const mappedPosts = fetchedPosts.map((post) => {
+					const data = post as DocumentData;
+					return {
+						title: data.title || '',
+						content: data.content || '',
+						author: data.author as Author,
+						createdAt: data.createdAt,
+					};
+				});
+				setPosts(mappedPosts);
+				filterPosts('3', mappedPosts);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'An error occurred');
 			} finally {
@@ -56,16 +77,28 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 		let filtered: PostWithAuthor[] = [];
 		switch (filter) {
 			case '0':
-				filtered = data.filter((post) => post.createdAt?.toDate() >= thirtyDaysAgo && post.createdAt?.toDate() < sevenDaysAgo);
+				filtered = data.filter((post) => {
+					const created = getDate(post.createdAt);
+					return created && created >= thirtyDaysAgo && created < sevenDaysAgo;
+				});
 				break;
 			case '1':
-				filtered = data.filter((post) => post.createdAt?.toDate() >= sevenDaysAgo && post.createdAt?.toDate() < yesterdayStart);
+				filtered = data.filter((post) => {
+					const created = getDate(post.createdAt);
+					return created && created >= sevenDaysAgo && created < yesterdayStart;
+				});
 				break;
 			case '2':
-				filtered = data.filter((post) => post.createdAt?.toDate() >= yesterdayStart && post.createdAt?.toDate() < todayStart);
+				filtered = data.filter((post) => {
+					const created = getDate(post.createdAt);
+					return created && created >= yesterdayStart && created < todayStart;
+				});
 				break;
 			case '3':
-				filtered = data.filter((post) => post.createdAt?.toDate() >= todayStart);
+				filtered = data.filter((post) => {
+					const created = getDate(post.createdAt);
+					return created && created >= todayStart;
+				});
 				break;
 			default:
 				filtered = data;
@@ -82,8 +115,17 @@ export const PostsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 		try {
 			await createPost(title, content, userRef);
 			const fetchedPosts = await getPosts();
-			setPosts(fetchedPosts as PostWithAuthor[]);
-			filterPosts(selectedFilter, fetchedPosts as PostWithAuthor[]);
+			const mappedPosts = fetchedPosts.map((post) => {
+				const data = post as DocumentData;
+				return {
+					title: data.title || '',
+					content: data.content || '',
+					author: data.author as Author,
+					createdAt: data.createdAt,
+				};
+			});
+			setPosts(mappedPosts);
+			filterPosts(selectedFilter, mappedPosts);
 		} catch (err) {
 			console.error('Error creating post:', err);
 			throw err;
